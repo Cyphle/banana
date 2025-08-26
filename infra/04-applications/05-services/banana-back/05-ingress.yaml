@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: banana-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  namespace: banana
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.bananaam.fr
+      secretName: banana-tls
+  rules:
+    - host: api.bananaam.fr
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: banana-back
+                port:
+                  number: 80
