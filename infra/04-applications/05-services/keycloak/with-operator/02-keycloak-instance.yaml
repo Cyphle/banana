@@ -1,0 +1,33 @@
+---
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: banana
+spec:
+  instances: 1
+  db:
+    vendor: postgres
+    host: postgres-keycloak-service.banana.svc.cluster.local
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: keycloak-secrets
+      key: username
+    passwordSecret:
+      name: keycloak-secrets
+      key: password
+  http:
+    tlsSecret: keycloak-tls
+  hostname:
+    hostname: oidc.bananaam.fr
+    strict: false
+    strictHttps: false
+  proxy:
+    headers: xforwarded
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
