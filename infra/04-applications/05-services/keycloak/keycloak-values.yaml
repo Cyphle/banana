@@ -4,26 +4,26 @@ auth:
   passwordSecretKey: "KEYCLOAK_ADMIN_PASSWORD"
   existingSecretUsernameKey: "KEYCLOAK_ADMIN"
 
-# Configuration de la base de données PostgreSQL
+## Configuration de la base de données PostgreSQL
 postgresql:
-  enabled: true
-  auth:
-    # Utiliser le secret pour la configuration PostgreSQL
-    existingSecret: "keycloak-secrets"
-    secretKeys:
-      adminPasswordKey: "POSTGRES_PASSWORD"
-      userPasswordKey: "POSTGRES_PASSWORD"  # Même password pour l'utilisateur keycloak
-      replicationPasswordKey: "POSTGRES_PASSWORD"
-    # Username PostgreSQL depuis le secret
-    postgresPassword: ""  # Sera récupéré du secret
-    username: "keycloak"  # Utilisateur pour la base keycloak
-    database: "keycloak"
+  enabled: false
+#  auth:
+#    # Utiliser le secret pour la configuration PostgreSQL
+#    existingSecret: "keycloak-secrets"
+#    secretKeys:
+#      adminPasswordKey: "POSTGRES_PASSWORD"
+#      userPasswordKey: "POSTGRES_PASSWORD"  # Même password pour l'utilisateur keycloak
+#      replicationPasswordKey: "POSTGRES_PASSWORD"
+#    # Username PostgreSQL depuis le secret
+#    postgresPassword: ""  # Sera récupéré du secret
+#    username: "POSTGRES_USER"  # Utilisateur pour la base keycloak
+#    database: "keycloak"
 
   # Configuration du conteneur PostgreSQL principal
-  primary:
-    persistence:
-      enabled: true
-      size: 8Gi
+#  primary:
+#    persistence:
+#      enabled: true
+#      size: 8Gi
       # storageClass: "your-storage-class"  # Décommentez si vous avez une storage class spécifique
 
 # Configuration du service
@@ -54,12 +54,6 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     nginx.ingress.kubernetes.io/proxy-body-size: "1m"
 
-    # Headers pour Keycloak derrière proxy
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header Accept-Encoding "";
-      sub_filter '<head>' '<head> <base href="https://oidc.bananaam.fr/">';
-      sub_filter_once on;
-
   extraTls:
     - hosts:
         - oidc.bananaam.fr
@@ -77,24 +71,43 @@ extraEnvVars:
     value: "edge"
   - name: JAVA_OPTS_APPEND
     value: "-Xms512m -Xmx1024m"
-  # Variables pour la connexion à la base de données
-  - name: KC_DB_URL_HOST
-    value: "keycloak-postgresql"
-  - name: KC_DB_URL_DATABASE
-    value: "keycloak"
+
+  # Variables pour la connexion à la base de données (utilisation d'une base externe)
+  - name: KC_DB
+    valueFrom:
+      configMapKeyRef:
+        name: keycloak-config
+        key: KC_DB
+  - name: KC_DB_URL
+    valueFrom:
+      configMapKeyRef:
+        name: keycloak-config
+        key: KC_DB_URL
   - name: KC_DB_USERNAME
-    value: "keycloak"
+    valueFrom:
+      secretKeyRef:
+        name: keycloak-secrets
+        key: POSTGRES_USER
   - name: KC_DB_PASSWORD
     valueFrom:
       secretKeyRef:
         name: keycloak-secrets
         key: POSTGRES_PASSWORD
 
+# Base de données externe (désactive PostgreSQL embarqué)
+externalDatabase:
+  host: "172.16.16.8"
+  port: 5432
+  database: "keycloak"
+  existingSecret: "keycloak-secrets"
+  existingSecretUserKey: "POSTGRES_USER"
+  existingSecretPasswordKey: "POSTGRES_PASSWORD"
+
 # Configuration du proxy (important pour Keycloak derrière ingress)
 proxy: edge
 
 # Réplication pour HA
-replicaCount: 2
+replicaCount: 1
 
 # Ressources
 resources:
