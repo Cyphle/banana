@@ -6,9 +6,10 @@ metadata:
   namespace: banana
 spec:
   instances: 1
+
   db:
     vendor: postgres
-    host: postgres-keycloak-service.banana.svc.cluster.local
+    host: 172.16.16.8
     port: 5432
     database: keycloak
     usernameSecret:
@@ -17,14 +18,16 @@ spec:
     passwordSecret:
       name: keycloak-secrets
       key: password
+
   http:
     tlsSecret: keycloak-tls
+
   hostname:
     hostname: oidc.bananaam.fr
-    strict: false
-    strictHttps: false
+
   proxy:
     headers: xforwarded
+
   resources:
     requests:
       memory: "1Gi"
