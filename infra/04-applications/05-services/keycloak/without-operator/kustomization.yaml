@@ -6,12 +6,10 @@ namespace: banana
 resources:
   - 01-external-secret.yaml
   - 02-configmap.yaml
-  - 08-keycloak-importer-operator.yaml
   - 04-service.yaml
-  - 05-service-admin.yaml
-  - 06-ingress.yaml
-  - 07-network-policy.yaml
-  - 08-keycloak-banana-realm.yaml
+  - 05-ingress.yaml
+  - 06-network-policy.yaml
+  - 07-keycloak-banana-realm.yaml
 
 commonLabels:
   app.kubernetes.io/name: keycloak

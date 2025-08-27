@@ -4,7 +4,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: keycloak-admin-policy
-  namespace: keycloak
+  namespace: banana
 spec:
   podSelector:
     matchLabels:
@@ -15,7 +15,7 @@ spec:
     # Autoriser le trafic public sur le port 8080
     - ports:
         - protocol: TCP
-          port: 8081
+          port: 8080
       from: []
     # Bloquer l'accès externe au port admin 9000
     - ports:
