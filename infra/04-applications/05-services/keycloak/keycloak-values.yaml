@@ -30,11 +30,11 @@ postgresql:
 service:
   type: ClusterIP
   ports:
-    http: 8080
+    http: 80
 
 # Configuration Ingress avec cert-manager
 ingress:
-  enabled: true
+  enabled: false
   ingressClassName: "nginx"
   hostname: "oidc.bananaam.fr"
 
