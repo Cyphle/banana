@@ -34,7 +34,7 @@ service:
 
 # Configuration Ingress avec cert-manager
 ingress:
-  enabled: false
+  enabled: true
   ingressClassName: "nginx"
   hostname: "oidc.bananaam.fr"
 
