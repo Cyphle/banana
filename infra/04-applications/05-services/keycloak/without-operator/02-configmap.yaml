@@ -7,9 +7,6 @@ metadata:
 data:
   KC_DB: "postgres"
   KC_DB_URL: "jdbc:postgresql://172.16.16.8:5432/keycloak"
-  KC_HOSTNAME: "oidc.bananaam.fr"
-  KC_HOSTNAME_STRICT: "true"
-  KC_HOSTNAME_STRICT_HTTPS: "true"
   KC_HTTP_ENABLED: "true"
   KC_PROXY: "edge"
   KC_HEALTH_ENABLED: "true"
