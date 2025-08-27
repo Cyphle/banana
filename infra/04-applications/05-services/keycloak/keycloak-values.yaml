@@ -1,0 +1,140 @@
+# Configuration de l'authentification admin
+auth:
+  existingSecret: "keycloak-secrets"
+  passwordSecretKey: "KEYCLOAK_ADMIN_PASSWORD"
+  existingSecretUsernameKey: "KEYCLOAK_ADMIN"
+
+# Configuration de la base de données PostgreSQL
+postgresql:
+  enabled: true
+  auth:
+    # Utiliser le secret pour la configuration PostgreSQL
+    existingSecret: "keycloak-secrets"
+    secretKeys:
+      adminPasswordKey: "POSTGRES_PASSWORD"
+      userPasswordKey: "POSTGRES_PASSWORD"  # Même password pour l'utilisateur keycloak
+      replicationPasswordKey: "POSTGRES_PASSWORD"
+    # Username PostgreSQL depuis le secret
+    postgresPassword: ""  # Sera récupéré du secret
+    username: "keycloak"  # Utilisateur pour la base keycloak
+    database: "keycloak"
+
+  # Configuration du conteneur PostgreSQL principal
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+      # storageClass: "your-storage-class"  # Décommentez si vous avez une storage class spécifique
+
+# Configuration du service
+service:
+  type: ClusterIP
+  ports:
+    http: 8080
+
+# Configuration Ingress avec cert-manager
+ingress:
+  enabled: true
+  ingressClassName: "nginx"
+  hostname: "oidc.bananaam.fr"
+
+  tls: true
+  selfSigned: false
+
+  annotations:
+    # Cert-manager
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+    # NGINX optimisations pour Keycloak
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+
+    # Headers pour Keycloak derrière proxy
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Accept-Encoding "";
+      sub_filter '<head>' '<head> <base href="https://oidc.bananaam.fr/">';
+      sub_filter_once on;
+
+  extraTls:
+    - hosts:
+        - oidc.bananaam.fr
+      secretName: keycloak-tls-cert
+
+# Variables d'environnement Keycloak
+extraEnvVars:
+  - name: KC_HOSTNAME
+    value: "oidc.bananaam.fr"
+  - name: KC_HOSTNAME_STRICT
+    value: "false"
+  - name: KC_HOSTNAME_STRICT_HTTPS
+    value: "true"
+  - name: KC_PROXY
+    value: "edge"
+  - name: JAVA_OPTS_APPEND
+    value: "-Xms512m -Xmx1024m"
+  # Variables pour la connexion à la base de données
+  - name: KC_DB_URL_HOST
+    value: "keycloak-postgresql"
+  - name: KC_DB_URL_DATABASE
+    value: "keycloak"
+  - name: KC_DB_USERNAME
+    value: "keycloak"
+  - name: KC_DB_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: keycloak-secrets
+        key: POSTGRES_PASSWORD
+
+# Configuration du proxy (important pour Keycloak derrière ingress)
+proxy: edge
+
+# Réplication pour HA
+replicaCount: 2
+
+# Ressources
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 500m
+  limits:
+    memory: 1Gi
+    cpu: 1000m
+
+# Sondes de santé avec délais appropriés
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 3
+
+# Configuration pour la haute disponibilité
+podDisruptionBudget:
+  create: true
+  minAvailable: 1
+
+# Affinity pour répartir les pods sur différents nœuds
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - keycloak
+          topologyKey: kubernetes.io/hostname
