@@ -47,7 +47,8 @@ ingress:
   annotations:
     # Cert-manager
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-#
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 #    # NGINX optimisations pour Keycloak
 #    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
 #    nginx.ingress.kubernetes.io/proxy-buffering: "on"
@@ -69,15 +70,19 @@ ingress:
 extraEnvVars:
 #  - name: KC_HOSTNAME
 #    value: "oidc.bananaam.fr"
-#    value: "localhost"
   - name: KC_HOSTNAME_STRICT
     value: "false"
   - name: KC_HOSTNAME_STRICT_HTTPS
     value: "false"
-#  - name: KC_PROXY
-#    value: "edge"
+  - name: KC_PROXY
+    value: "edge"
   - name: JAVA_OPTS_APPEND
     value: "-Xms512m -Xmx1024m"
+  # KEYCLOAK_EXTRA_ARGS: --hostname-admin-url=http://localhost:9999
+  # KEYCLOAK_PRODUCTION: "true"
+  # HOME_PAGE_URL: "https://oidc.bananaam.fr"
+  #- name: KEYCLOAK_FRONTEND_URL
+  #    value: "https://oidc.bananaam.fr"
 
   # Variables pour la connexion à la base de données (utilisation d'une base externe)
   - name: KC_DB
