@@ -26,6 +26,9 @@ postgresql:
 #      size: 8Gi
       # storageClass: "your-storage-class"  # Décommentez si vous avez une storage class spécifique
 
+keycloak:
+  image: bitnami/keycloak:25.1.2
+
 # Configuration du service
 service:
   type: ClusterIP
@@ -39,36 +42,40 @@ ingress:
   hostname: "oidc.bananaam.fr"
 
   tls: true
-  selfSigned: false
-
+#  selfSigned: false
+#
   annotations:
     # Cert-manager
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#
+#    # NGINX optimisations pour Keycloak
+#    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+#    nginx.ingress.kubernetes.io/proxy-buffering: "on"
+#    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+#    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+#    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+#    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+#    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+#
+#  extraTls:
+#    - hosts:
+#        - oidc.bananaam.fr
+#      secretName: keycloak-tls-cert
 
-    # NGINX optimisations pour Keycloak
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
-    nginx.ingress.kubernetes.io/proxy-buffering: "on"
-    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
-
-  extraTls:
-    - hosts:
-        - oidc.bananaam.fr
-      secretName: keycloak-tls-cert
+#tls:
+#  enabled: true
 
 # Variables d'environnement Keycloak
 extraEnvVars:
-  - name: KC_HOSTNAME
-    value: "oidc.bananaam.fr"
+#  - name: KC_HOSTNAME
+#    value: "oidc.bananaam.fr"
+#    value: "localhost"
   - name: KC_HOSTNAME_STRICT
     value: "false"
   - name: KC_HOSTNAME_STRICT_HTTPS
-    value: "true"
-  - name: KC_PROXY
-    value: "edge"
+    value: "false"
+#  - name: KC_PROXY
+#    value: "edge"
   - name: JAVA_OPTS_APPEND
     value: "-Xms512m -Xmx1024m"
 
@@ -104,7 +111,8 @@ externalDatabase:
   existingSecretPasswordKey: "POSTGRES_PASSWORD"
 
 # Configuration du proxy (important pour Keycloak derrière ingress)
-proxy: edge
+#proxy: edge
+#proxy: passthrough
 
 # Réplication pour HA
 replicaCount: 1
