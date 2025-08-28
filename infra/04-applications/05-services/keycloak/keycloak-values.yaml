@@ -7,24 +7,6 @@ auth:
 ## Configuration de la base de données PostgreSQL
 postgresql:
   enabled: false
-#  auth:
-#    # Utiliser le secret pour la configuration PostgreSQL
-#    existingSecret: "keycloak-secrets"
-#    secretKeys:
-#      adminPasswordKey: "POSTGRES_PASSWORD"
-#      userPasswordKey: "POSTGRES_PASSWORD"  # Même password pour l'utilisateur keycloak
-#      replicationPasswordKey: "POSTGRES_PASSWORD"
-#    # Username PostgreSQL depuis le secret
-#    postgresPassword: ""  # Sera récupéré du secret
-#    username: "POSTGRES_USER"  # Utilisateur pour la base keycloak
-#    database: "keycloak"
-
-  # Configuration du conteneur PostgreSQL principal
-#  primary:
-#    persistence:
-#      enabled: true
-#      size: 8Gi
-      # storageClass: "your-storage-class"  # Décommentez si vous avez une storage class spécifique
 
 keycloak:
   image: bitnami/keycloak:25.1.2
@@ -47,24 +29,10 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # NGINX optimisations pour Keycloak
-#    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
-#    nginx.ingress.kubernetes.io/proxy-buffering: "on"
-#    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
-#    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
-#    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
-#    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-#    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
 
 production: true
-#tls:
-#  enabled: true
-
-# SOLUTION 1: Configuration proxy headers (recommandée)
 proxyHeaders: "xforwarded"
-# Configuration du proxy (important pour Keycloak derrière ingress)
 proxy: edge
-#proxy: passthrough
 
 # Variables d'environnement Keycloak
 extraEnvVars:
@@ -98,44 +66,6 @@ extraEnvVars:
   - name: JAVA_OPTS_APPEND
     value: "-Xms1024m -Xmx2048m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75"
 
-  #  - name: KC_HOSTNAME
-#    value: "oidc.bananaam.fr"
-#  - name: KC_HOSTNAME_STRICT
-#    value: "false"
-#  - name: KC_HOSTNAME_STRICT_HTTPS
-#    value: "false"
-#  - name: KC_PROXY
-#    value: "edge"
-#  - name: JAVA_OPTS_APPEND
-#    value: "-Xms512m -Xmx1024m"
-  # KEYCLOAK_EXTRA_ARGS: --hostname-admin-url=http://localhost:9999
-  # KEYCLOAK_PRODUCTION: "true"
-  # HOME_PAGE_URL: "https://oidc.bananaam.fr"
-  #- name: KEYCLOAK_FRONTEND_URL
-  #    value: "https://oidc.bananaam.fr"
-
-  # Variables pour la connexion à la base de données (utilisation d'une base externe)
-#  - name: KC_DB
-#    valueFrom:
-#      configMapKeyRef:
-#        name: keycloak-config
-#        key: KC_DB
-#  - name: KC_DB_URL
-#    valueFrom:
-#      configMapKeyRef:
-#        name: keycloak-config
-#        key: KC_DB_URL
-#  - name: KC_DB_USERNAME
-#    valueFrom:
-#      secretKeyRef:
-#        name: keycloak-secrets
-#        key: POSTGRES_USER
-#  - name: KC_DB_PASSWORD
-#    valueFrom:
-#      secretKeyRef:
-#        name: keycloak-secrets
-#        key: POSTGRES_PASSWORD
-
 # Base de données externe (désactive PostgreSQL embarqué)
 externalDatabase:
   host: "172.16.16.8"
@@ -151,11 +81,10 @@ replicaCount: 1
 # Ressources
 resources:
   requests:
-    memory: 512Mi
+    memory: 1Gi
     cpu: 500m
   limits:
-    memory: 1Gi
-    cpu: 1000m
+    memory: 2Gi
 
 # Sondes de santé avec délais appropriés
 livenessProbe:
