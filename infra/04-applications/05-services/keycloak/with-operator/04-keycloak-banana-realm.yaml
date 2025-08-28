@@ -1,11 +1,12 @@
+# CA marche pas avec un chart bitnami. Y a pas de CR keycloak de créée
 ---
 apiVersion: k8s.keycloak.org/v2alpha1
 kind: KeycloakRealmImport
 metadata:
   name: banana-realm-import
-  namespace: keycloak-system
+  namespace: banana
 spec:
-  keycloakCRName: keycloak-instance
+  keycloakCRName: <c'est le nom de la CR créée quand on créé un keycloak avec l'operator et une custom ressource>
   realm:
     id: "90ca7b39-a00c-4bd5-a66c-0b533ff2f368"
     realm: "banana"
