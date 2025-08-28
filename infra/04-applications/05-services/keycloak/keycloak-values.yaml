@@ -40,16 +40,14 @@ ingress:
   enabled: true
   ingressClassName: "nginx"
   hostname: "oidc.bananaam.fr"
-
   tls: true
-#  selfSigned: false
-#
+
   annotations:
     # Cert-manager
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-#    # NGINX optimisations pour Keycloak
+    # NGINX optimisations pour Keycloak
 #    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
 #    nginx.ingress.kubernetes.io/proxy-buffering: "on"
 #    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
@@ -57,27 +55,59 @@ ingress:
 #    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
 #    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
 #    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
-#
-#  extraTls:
-#    - hosts:
-#        - oidc.bananaam.fr
-#      secretName: keycloak-tls-cert
 
+production: true
 #tls:
 #  enabled: true
 
+# SOLUTION 1: Configuration proxy headers (recommandée)
+proxyHeaders: "xforwarded"
+# Configuration du proxy (important pour Keycloak derrière ingress)
+proxy: edge
+#proxy: passthrough
+
 # Variables d'environnement Keycloak
 extraEnvVars:
-#  - name: KC_HOSTNAME
-#    value: "oidc.bananaam.fr"
-  - name: KC_HOSTNAME_STRICT
-    value: "false"
-  - name: KC_HOSTNAME_STRICT_HTTPS
-    value: "false"
+  # Configuration hostname v2 avec HTTPS strict
+  - name: KC_HOSTNAME_URL
+    value: "https://oidc.bananaam.fr"
+  - name: KC_HOSTNAME_ADMIN_URL
+    value: "https://oidc.bananaam.fr"
+
+  # Configuration proxy v2 - CORRIGÉE
+  - name: KC_PROXY_HEADERS
+    value: "xforwarded"
+
+  # AJOUT CRITIQUE : Forcer le contexte sécurisé
   - name: KC_PROXY
     value: "edge"
+
+  # Headers de proxy pour forcer HTTPS
+  - name: KC_PROXY_ADDRESS_FORWARDING
+    value: "true"
+
+  # Activer HTTP pour les communications internes
+  - name: KC_HTTP_ENABLED
+    value: "true"
+
+  # Configuration logging
+  - name: KC_LOG_LEVEL
+    value: "INFO"
+
+  # Configuration JVM
   - name: JAVA_OPTS_APPEND
-    value: "-Xms512m -Xmx1024m"
+    value: "-Xms1024m -Xmx2048m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxRAMPercentage=75"
+
+  #  - name: KC_HOSTNAME
+#    value: "oidc.bananaam.fr"
+#  - name: KC_HOSTNAME_STRICT
+#    value: "false"
+#  - name: KC_HOSTNAME_STRICT_HTTPS
+#    value: "false"
+#  - name: KC_PROXY
+#    value: "edge"
+#  - name: JAVA_OPTS_APPEND
+#    value: "-Xms512m -Xmx1024m"
   # KEYCLOAK_EXTRA_ARGS: --hostname-admin-url=http://localhost:9999
   # KEYCLOAK_PRODUCTION: "true"
   # HOME_PAGE_URL: "https://oidc.bananaam.fr"
@@ -85,26 +115,26 @@ extraEnvVars:
   #    value: "https://oidc.bananaam.fr"
 
   # Variables pour la connexion à la base de données (utilisation d'une base externe)
-  - name: KC_DB
-    valueFrom:
-      configMapKeyRef:
-        name: keycloak-config
-        key: KC_DB
-  - name: KC_DB_URL
-    valueFrom:
-      configMapKeyRef:
-        name: keycloak-config
-        key: KC_DB_URL
-  - name: KC_DB_USERNAME
-    valueFrom:
-      secretKeyRef:
-        name: keycloak-secrets
-        key: POSTGRES_USER
-  - name: KC_DB_PASSWORD
-    valueFrom:
-      secretKeyRef:
-        name: keycloak-secrets
-        key: POSTGRES_PASSWORD
+#  - name: KC_DB
+#    valueFrom:
+#      configMapKeyRef:
+#        name: keycloak-config
+#        key: KC_DB
+#  - name: KC_DB_URL
+#    valueFrom:
+#      configMapKeyRef:
+#        name: keycloak-config
+#        key: KC_DB_URL
+#  - name: KC_DB_USERNAME
+#    valueFrom:
+#      secretKeyRef:
+#        name: keycloak-secrets
+#        key: POSTGRES_USER
+#  - name: KC_DB_PASSWORD
+#    valueFrom:
+#      secretKeyRef:
+#        name: keycloak-secrets
+#        key: POSTGRES_PASSWORD
 
 # Base de données externe (désactive PostgreSQL embarqué)
 externalDatabase:
@@ -114,10 +144,6 @@ externalDatabase:
   existingSecret: "keycloak-secrets"
   existingSecretUserKey: "POSTGRES_USER"
   existingSecretPasswordKey: "POSTGRES_PASSWORD"
-
-# Configuration du proxy (important pour Keycloak derrière ingress)
-#proxy: edge
-#proxy: passthrough
 
 # Réplication pour HA
 replicaCount: 1
