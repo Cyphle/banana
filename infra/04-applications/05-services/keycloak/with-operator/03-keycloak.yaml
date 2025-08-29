@@ -1,0 +1,27 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: banana
+spec:
+  instances: 1
+  db:
+    vendor: postgres
+    host: 172.16.16.8
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: keycloak-secrets
+      key: POSTGRES_USER
+    passwordSecret:
+      name: keycloak-secrets
+      key: POSTGRES_PASSWORD
+  bootstrapAdmin:
+    user:
+      secret: keycloak-admin-secrets
+  http:
+    tlsSecret: oidc.bananaam.fr-tls
+  hostname:
+    hostname: oidc.bananaam.fr
+  proxy:
+    headers: xforwarded # double check your reverse proxy sets and overwrites the X-Forwarded-* headers
