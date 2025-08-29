@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak-ingress-2
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  namespace: banana
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - oidc.bananaam.fr
+    secretName: oidc.bananaam.fr-tls
+  rules:
+  - host: oidc.bananaam.fr
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: keycloak-service
+            port:
+              number: 8081

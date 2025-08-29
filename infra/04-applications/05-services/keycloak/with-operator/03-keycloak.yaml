@@ -21,7 +21,28 @@ spec:
       secret: keycloak-admin-secrets
   http:
     tlsSecret: oidc.bananaam.fr-tls
+#    httpEnabled: true
+#    httpPort: 8180
+#    httpsPort: 8443
+  ingress:
+    enabled: false
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/rewrite-target: /
   hostname:
-    hostname: oidc.bananaam.fr
+    hostname: https://oidc.bananaam.fr
+    admin: https://oidc.bananaam.fr/admin
+    strict: false
   proxy:
     headers: xforwarded # double check your reverse proxy sets and overwrites the X-Forwarded-* headers
+
+  readinessProbe:
+    periodSeconds: 20
+    failureThreshold: 5
+  livenessProbe:
+    periodSeconds: 20
+    failureThreshold: 5
+  startupProbe:
+    periodSeconds: 20
+    failureThreshold: 5
