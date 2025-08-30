@@ -37,7 +37,7 @@ pub struct AppState {
     pub db_connection: &'static DatabaseConnection,
     pub oidc_client: Option<Arc<Mutex<Client<Discovered, StandardClaims>>>>,
     pub store: Mutex<HashMap<String, Bearer>>,
-    pub oidc_config: Option<OidcConfig>,
+    pub oidc_config: OidcConfig,
 }
 
 pub struct SessionConfig {
@@ -57,15 +57,12 @@ pub async fn start(application_configuration: &AppConfig) -> std::io::Result<()>
     let static_db = Box::leak(Box::new(db));
 
     // OIDC
-    // TODO Remettre l'oidc et bien régler la config
-    // let oidc_config = get_oidc_config();
-    // let client = Arc::new(Mutex::new(get_client(&oidc_config).await));
+    let oidc_config = get_oidc_config();
+    let client = Arc::new(Mutex::new(get_client(&oidc_config).await));
 
     // Session
     let session_config = get_session_config();
     let secret_key = Key::from(&[0; 64]);
-    // let redis_store = RedisSessionStore::new(session_config.store_addr)
-    info!("Redis URL {}", application_configuration.get_session_url());
 
     let redis_store = RedisSessionStore::new(application_configuration.get_session_url())
         .await
@@ -73,11 +70,9 @@ pub async fn start(application_configuration: &AppConfig) -> std::io::Result<()>
 
     let state = web::Data::new(AppState {
         db_connection: static_db,
-        // oidc_client: Some(client.clone()),
-        oidc_client: None,
+        oidc_client: Some(client.clone()),
         store: Mutex::new(HashMap::new()),
-        // oidc_config: oidc_config.clone(),
-        oidc_config: None,
+        oidc_config: oidc_config.clone(),
     });
 
     // Actix
