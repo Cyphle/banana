@@ -45,7 +45,7 @@ spec:
     oauth2DeviceCodeLifespan: 600
     oauth2DevicePollingInterval: 5
 
-    # R�les du realm
+    # Roles du realm
     roles:
       realm:
         - name: "default-roles-banana"

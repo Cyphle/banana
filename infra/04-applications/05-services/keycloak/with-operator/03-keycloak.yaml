@@ -5,6 +5,7 @@ metadata:
   namespace: banana
 spec:
   instances: 1
+
   db:
     vendor: postgres
     host: 172.16.16.8
@@ -16,24 +17,29 @@ spec:
     passwordSecret:
       name: keycloak-secrets
       key: POSTGRES_PASSWORD
+
   bootstrapAdmin:
     user:
       secret: keycloak-admin-secrets
+
   http:
-    # Serve HTTP internally; TLS terminates at Ingress
-    # httpEnabled defaults to true; keep tlsSecret unset to avoid internal HTTPS
     httpEnabled: true
     httpPort: 8180
-#    httpsPort: 8443
   ingress:
     enabled: false
-    # Ingress will be managed by with-operator/04-tls-ingress.yaml
   hostname:
     hostname: https://oidc.bananaam.fr
     admin: https://oidc.bananaam.fr
     strict: false
   proxy:
     headers: xforwarded # double check your reverse proxy sets and overwrites the X-Forwarded-* headers
+
+  resources:
+    requests:
+      cpu: 1200m
+      memory: 896Mi
+    limits:
+      memory: 2Gi
 
   readinessProbe:
     periodSeconds: 20
