@@ -20,20 +20,18 @@ spec:
     user:
       secret: keycloak-admin-secrets
   http:
-    tlsSecret: oidc.bananaam.fr-tls
-#    httpEnabled: true
-#    httpPort: 8180
+    # Serve HTTP internally; TLS terminates at Ingress
+    # httpEnabled defaults to true; keep tlsSecret unset to avoid internal HTTPS
+    httpEnabled: true
+    httpPort: 8180
 #    httpsPort: 8443
   ingress:
     enabled: false
-    className: "nginx"
-    annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      nginx.ingress.kubernetes.io/rewrite-target: /
+    # Ingress will be managed by with-operator/04-tls-ingress.yaml
   hostname:
-    hostname: https://oidc.bananaam.fr
-    admin: https://oidc.bananaam.fr/admin
-    strict: false
+    hostname: oidc.bananaam.fr
+#    admin: oidc.bananaam.fr
+    strict: true
   proxy:
     headers: xforwarded # double check your reverse proxy sets and overwrites the X-Forwarded-* headers
 
