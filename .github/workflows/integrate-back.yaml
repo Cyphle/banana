@@ -2,6 +2,8 @@ name: Build and Push Banana back to ECR
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   build-and-push:
@@ -28,8 +30,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: back
-          file: back/Dockerfile
+          context: back/Dockerfile
           push: true
           tags: |
             ${{ vars.CONTAINER_REGISTRY_ENDPOINT }}/${{ env.ECR_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}

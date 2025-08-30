@@ -5,7 +5,7 @@ use crate::security::oidc::{OidcAdminConfig, OidcConfig};
 pub fn get_oidc_config() -> OidcConfig {
     return OidcConfig::new(
         // "http://localhost:8181/realms/Banana".to_string(),
-        "keycloak:8180/realms/Banana".to_string(),
+        "http://keycloak:8180/realms/banana".to_string(),
         "banana".to_string(),
         "banana-secret".to_string(),
         // "http://localhost:8080/login".to_string(),

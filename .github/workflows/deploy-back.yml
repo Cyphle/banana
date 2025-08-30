@@ -32,6 +32,6 @@ jobs:
       - name: Apply Kubernetes manifest
         run: |
           cd infra/04-applications/05-services/banana-back
-          kubectl apply -n banana -f k8s/cloud/03-deployment.yaml
-          kubectl apply -n banana -f k8s/cloud/04-service.yaml
+          kubectl apply -n banana -f 03-deployment.yaml
+          kubectl apply -n banana -f 04-service.yaml
           kubectl rollout status deployment/banana-back --namespace banana --timeout=120s
