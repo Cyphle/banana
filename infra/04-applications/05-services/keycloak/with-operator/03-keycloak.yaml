@@ -29,9 +29,9 @@ spec:
     enabled: false
     # Ingress will be managed by with-operator/04-tls-ingress.yaml
   hostname:
-    hostname: oidc.bananaam.fr
-#    admin: oidc.bananaam.fr
-    strict: true
+    hostname: https://oidc.bananaam.fr
+    admin: https://oidc.bananaam.fr
+    strict: false
   proxy:
     headers: xforwarded # double check your reverse proxy sets and overwrites the X-Forwarded-* headers
 
