@@ -14,5 +14,6 @@ data:
   KC_HOSTNAME: "https://oidc.bananaam.fr"
   KC_HOSTNAME_STRICT: "false"
   KC_HOSTNAME_STRICT_HTTPS: "false"
+  KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
   KC_CACHE: "local"
   KC_PROXY_HEADERS: "xforwarded"
