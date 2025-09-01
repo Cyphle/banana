@@ -1,4 +1,4 @@
-name: Build and Push Docker Image of example app
+name: Build and Push Docker Image of debug app
 
 on:
   workflow_dispatch:
