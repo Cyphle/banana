@@ -80,7 +80,7 @@ impl AppConfig {
             self.session.database.port
         )
     }
-
+    
     pub fn database_url(&self) -> String {
         format!(
             "postgres://{}:{}@{}:{}/{}",
