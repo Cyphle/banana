@@ -1,0 +1,12 @@
+# When there is already a managed postgres instance. Use it instead of creating a new one
+resource "scaleway_rdb_database" "banana-db" {
+  name        = "bananadb"
+  instance_id = data.scaleway_rdb_instance.banana-keycloak-db.id
+}
+
+resource "scaleway_rdb_privilege" "banana_user_privileges" {
+  instance_id   = data.scaleway_rdb_instance.banana-keycloak-db.id
+  user_name     = var.db_user
+  database_name = scaleway_rdb_database.banana-db.name
+  permission    = "all"
+}
