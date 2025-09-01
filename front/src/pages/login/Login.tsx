@@ -91,7 +91,7 @@ export const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    window.location.href = "http://localhost:8080/login";
+    window.location.href = "https://api.bananaam.fr/login";
     // window.location.href = "http://localhost:8080/api/login";
   //   fetch(`${BASE_PATH}/api/login`, {
   //   })
