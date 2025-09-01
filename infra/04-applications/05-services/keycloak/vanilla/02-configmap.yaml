@@ -13,4 +13,4 @@ data:
   KC_METRICS_ENABLED: "true"
   KC_HOSTNAME: "oidc.bananaam.fr"
   KC_HOSTNAME_STRICT: "false"
-  KC_HOSTNAME_STRICT_HTTPS: "true"
+  KC_HOSTNAME_STRICT_HTTPS: "false"

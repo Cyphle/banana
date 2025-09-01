@@ -18,177 +18,63 @@ spec:
       containers:
         - name: keycloak
           image: bitnami/keycloak:26.3.3
-          TODO : To be configured: https://hub.docker.com/r/bitnami/keycloak
-#          ports:
-#            - name: http
-#              containerPort: 8080
-#          env:
-#            # Database
-#            - name: BANANA_DATABASE_HOST
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_HOST
-#            - name: BANANA_DATABASE_PORT
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_PORT
-#            - name: BANANA_DATABASE_NAME
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_NAME
-#            - name: BANANA_DATABASE_MAX_CONNECTIONS
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_MAX_CONNECTIONS
-#            - name: BANANA_DATABASE_MIN_CONNECTIONS
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_MIN_CONNECTIONS
-#            - name: BANANA_DATABASE_CONNECT_TIMEOUT
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_CONNECT_TIMEOUT
-#            - name: BANANA_DATABASE_ACQUIRE_TIMEOUT
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_ACQUIRE_TIMEOUT
-#            - name: BANANA_DATABASE_IDLE_TIMEOUT
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_IDLE_TIMEOUT
-#            - name: BANANA_DATABASE_MAX_LIFETIME
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_MAX_LIFETIME
-#            - name: BANANA_DATABASE_SQLX_LOGGING
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: DB_SQLX_LOGGING
-#
-#            - name: BANANA_DATABASE_USERNAME
-#              valueFrom:
-#                secretKeyRef:
-#                  name: banana-secrets
-#                  key: POSTGRES_USERNAME
-#            - name: BANANA_DATABASE_PASSWORD
-#              valueFrom:
-#                secretKeyRef:
-#                  name: banana-secrets
-#                  key: POSTGRES_PASSWORD
-#
-#            # Redis
-#            - name: BANANA_SESSION_DATABASE_HOST
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: REDIS_HOST
-#            - name: BANANA_SESSION_DATABASE_PORT
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: REDIS_PORT
-#
-#            - name: BANANA_SESSION_DATABASE_USERNAME
-#              valueFrom:
-#                secretKeyRef:
-#                  name: banana-secrets
-#                  key: REDIS_USERNAME
-#            - name: BANANA_SESSION_DATABASE_PASSWORD
-#              valueFrom:
-#                secretKeyRef:
-#                  name: banana-secrets
-#                  key: REDIS_PASSWORD
-#
-#            # OIDC
-#            - name: BANANA_OIDC_URL
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: OIDC_URL
-#            - name: BANANA_OIDC_REALM_NAME
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: OIDC_REALM
-#            - name: BANANA_OIDC_REDIRECT_URI
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: OIDC_REDIRECT_URI
-#            - name: BANANA_OIDC_LOGOUT_URI
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: OIDC_LOGOUT_URL
-#
-#            - name: BANANA_OIDC_CLIENT_ID
-#              valueFrom:
-#                secretKeyRef:
-#                  name: banana-secrets
-#                  key: OIDC_CLIENT_ID
-#            - name: BANANA_OIDC_CLIENT_SECRET
-#              valueFrom:
-#                secretKeyRef:
-#                  name: banana-secrets
-#                  key: OIDC_CLIENT_SECRET
-#            - name: BANANA_OIDC_ADMIN_CLIENT_ID
-#              valueFrom:
-#                secretKeyRef:
-#                  name: banana-secrets
-#                  key: OIDC_ADMIN_CLIENT_ID
-#            - name: BANANA_OIDC_ADMIN_CLIENT_SECRET
-#              valueFrom:
-#                secretKeyRef:
-#                  name: banana-secrets
-#                  key: OIDC_ADMIN_CLIENT_SECRET
-#
-#            # DEBUG
-#            - name: RUST_BACKTRACE
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: keycloak-config
-#                  key: RUST_BACKTRACE
-#
-#          livenessProbe:
-#            httpGet:
-#              path: /health/live
-#              port: 8080
-#            initialDelaySeconds: 60
-#            periodSeconds: 30
-#            timeoutSeconds: 10
-#            failureThreshold: 3
-#
-#          readinessProbe:
-#            httpGet:
-#              path: /health/ready
-#              port: 8080
-#            initialDelaySeconds: 30
-#            periodSeconds: 10
-#            timeoutSeconds: 5
-#            failureThreshold: 3
-#
-#          startupProbe:
-#            httpGet:
-#              path: /health/ready
-#              port: 8080
-#            initialDelaySeconds: 30
-#            periodSeconds: 10
-#            timeoutSeconds: 5
-#            failureThreshold: 30
-#
-#          resources:
-#            requests:
-#              memory: "256Mi"
-#              cpu: "256m"
-#            limits:
-#              memory: "1Gi"
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: keycloak-config
+          env:
+            # Database credentials from secret
+            - name: KEYCLOAK_DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secrets
+                  key: POSTGRES_USER
+            - name: KEYCLOAK_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secrets
+                  key: POSTGRES_PASSWORD
+            # Admin credentials from secret
+            - name: KEYCLOAK_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secrets
+                  key: KEYCLOAK_ADMIN
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"

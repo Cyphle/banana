@@ -11,6 +11,8 @@ RUN apt-get update \
        iputils-ping \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get install --no-cache iputils bind-tools netcat-openbsd
+
 # Create non-root user
 RUN groupadd -g 10001 appgroup \
     && useradd -m -u 10001 -g appgroup appuser
