@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: debug-app
-          image: debug-app:latest
-          imagePullPolicy: IfNotPresent
+          image: rg.fr-par.scw.cloud/banana/debug-app:latest
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 8080
