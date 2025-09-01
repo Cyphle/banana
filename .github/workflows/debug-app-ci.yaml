@@ -28,7 +28,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./debug/debug-app
+          context: ./tools/debug-app
           push: true
           tags: |
             ${{ vars.CONTAINER_REGISTRY_ENDPOINT }}/${{ env.ECR_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest
