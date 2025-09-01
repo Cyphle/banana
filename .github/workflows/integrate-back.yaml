@@ -2,8 +2,6 @@ name: Build and Push Banana back to ECR
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
 
 jobs:
   build-and-push:
