@@ -1,16 +1,14 @@
-# Ubuntu-based runtime with Node.js
-FROM ubuntu:22.04
+# Node.js runtime with basic debugging tools
+FROM node:22-bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Node.js 22.x from NodeSource
+# Install extra tools: curl and ping
 RUN apt-get update \
-    && apt-get install -y ca-certificates curl gnupg \
-    && mkdir -p /etc/apt/keyrings \
-    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | tee /etc/apt/keyrings/nodesource.gpg >/dev/null \
-    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update \
-    && apt-get install -y nodejs \
+    && apt-get install -y --no-install-recommends \
+       ca-certificates \
+       curl \
+       iputils-ping \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -19,11 +17,11 @@ RUN groupadd -g 10001 appgroup \
 
 WORKDIR /app
 
-# Install dependencies first (better layer caching)
-COPY package.json .
+# Install dependencies (leverage Docker layer caching)
+COPY package.json ./
 RUN npm ci --omit=dev || npm install --omit=dev
 
-# Copy app source
+# Copy application source
 COPY server.js ./
 
 ENV NODE_ENV=production \
@@ -32,8 +30,5 @@ ENV NODE_ENV=production \
 
 USER appuser
 EXPOSE 8080
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -sf http://127.0.0.1:8080/healthz || exit 1
 
 CMD ["node", "server.js"]
