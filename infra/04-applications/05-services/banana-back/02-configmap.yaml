@@ -4,7 +4,7 @@ metadata:
   name: banana-back-config
   namespace: banana
 data:
-  DB_HOST: "172.16.16.6"
+  DB_HOST: "172.16.16.8"
   DB_PORT: "5432"
   DB_NAME: "bananadb"
   DB_MAX_CONNECTIONS: "100"
