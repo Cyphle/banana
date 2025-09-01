@@ -30,7 +30,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: back/Dockerfile
+          context: back
+          file: back/Dockerfile
           push: true
           tags: |
             ${{ vars.CONTAINER_REGISTRY_ENDPOINT }}/${{ env.ECR_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.sha }}

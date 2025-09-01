@@ -6,7 +6,7 @@ resource "scaleway_rdb_database" "banana-db" {
 
 resource "scaleway_rdb_privilege" "banana_user_privileges" {
   instance_id   = data.scaleway_rdb_instance.banana-keycloak-db.id
-  user_name     = var.db_user
+  user_name     = data.scaleway_rdb_instance.banana-keycloak-db.user_name
   database_name = scaleway_rdb_database.banana-db.name
   permission    = "all"
 }
