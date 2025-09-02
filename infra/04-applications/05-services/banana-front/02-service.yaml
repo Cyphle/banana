@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: banana-front
+  namespace: banana
   labels:
     app: banana-front
 spec:
