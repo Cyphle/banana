@@ -21,7 +21,7 @@ service:
 ingress:
   enabled: true
   ingressClassName: "nginx"
-  hostname: "oidc.bananaam.fr"
+  hostname: "auth.bananaam.fr"
   tls: true
 
   annotations:
@@ -38,9 +38,9 @@ proxy: edge
 extraEnvVars:
   # Configuration hostname v2 avec HTTPS strict
   - name: KC_HOSTNAME_URL
-    value: "https://oidc.bananaam.fr"
+    value: "https://auth.bananaam.fr"
   - name: KC_HOSTNAME_ADMIN_URL
-    value: "https://oidc.bananaam.fr"
+    value: "https://auth.bananaam.fr"
 
   # Configuration proxy v2 - CORRIGÉE
   - name: KC_PROXY_HEADERS

@@ -10,10 +10,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - oidc.bananaam.fr
-    secretName: oidc.bananaam.fr-tls
+    - auth.bananaam.fr
+    secretName: auth.bananaam.fr-tls
   rules:
-  - host: oidc.bananaam.fr
+  - host: auth.bananaam.fr
     http:
       paths:
       - path: /
