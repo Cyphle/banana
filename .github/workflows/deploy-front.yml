@@ -14,6 +14,7 @@ jobs:
 
     env:
       IMAGE_PATH: ${{ vars.CONTAINER_REGISTRY_ENDPOINT }}/banana/banana-front
+      DEPLOYMENT_NAME: "01-deployment.yaml"
 
     steps:
       - name: Checkout repo
@@ -26,11 +27,11 @@ jobs:
 
       - name: Patch image tag in manifest
         run: |
-          sed -i "s|${{ env.IMAGE_PATH }}:.*|${{ env.IMAGE_PATH }}:${{ github.event.inputs.version }}|" infra/04-applications/05-services/banana-front/01-deployment.yaml
+          sed -i "s|${{ env.IMAGE_PATH }}:.*|${{ env.IMAGE_PATH }}:${{ github.event.inputs.version }}|" infra/04-applications/05-services/banana-front/${{ env.DEPLOYMENT_NAME }}
         working-directory: .
 
       - name: Apply Kubernetes manifest
         run: |
           cd infra/04-applications/05-services/banana-front
-          kubectl apply -n banana -f k8s/banana-front.yaml
+          kubectl apply -n banana -f k8s/${{ env.DEPLOYMENT_NAME }}
           kubectl rollout status deployment/banana-front --namespace banana --timeout=120s
