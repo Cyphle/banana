@@ -26,6 +26,7 @@
 //   - Fetch Scaleway secrets from secret manager (banana-prod folder)
 //   - Update external secret YAML files with fetched secret IDs
 //   - Fetch database instance information and update ConfigMaps
+//   - Deploy ingress controller and cluster issuer
 //   - Wait for each command to complete before proceeding
 //   - Exit on first error to prevent partial deployment
 //   - Display progress messages throughout execution
@@ -321,13 +322,30 @@ deployDatabases() {
     echo "All databases deployed successfully!"
 }
 
+deployIngressController() {
+    echo "Step 9: Deploying ingress controller and cluster issuer..."
+    
+    // Change to ingress directory
+    echo "Changing to ingress directory..."
+    cd("../../infra/04-applications/02-ingress")
+    
+    // Execute the ingress controller deployment script
+    echo "Executing ingress controller deployment script..."
+    $./ingress-controller.sh$ failed {
+        echo "Error: Failed to deploy ingress controller and cluster issuer"
+        exit(1)
+    }
+    
+    echo "Ingress controller and cluster issuer deployed successfully!"
+}
+
 updateSecrets() {
-    echo "Step 6: Fetching and updating Scaleway secrets..."
+    echo "Step 7: Fetching and updating Scaleway secrets..."
     fetchScalewaySecrets()
 }
 
 updateConfigMapsWithDatabaseIPs() {
-    echo "Step 7: Fetching database information and updating ConfigMaps..."
+    echo "Step 8: Fetching database information and updating ConfigMaps..."
     fetchDatabaseInfo()
 }
 
@@ -340,6 +358,7 @@ main(args) {
     deployDatabases()
     updateSecrets()
     updateConfigMapsWithDatabaseIPs()
+    deployIngressController()
     
     echo "The complete Kubernetes cluster is now ready for use."
     echo "All deployment steps completed successfully!"
