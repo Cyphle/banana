@@ -1,0 +1,78 @@
+#!/usr/bin/env amber
+
+// Infrastructure Shutdown Script
+// 
+// This script safely shuts down the entire Banana infrastructure by destroying:
+// 1. Kubernetes node pool (to avoid running costs)
+// 2. All databases (banana-db, banana-session, keycloak)
+//
+// USAGE:
+//   From the project root directory: ./tools/switch/off.ab
+//   Or from tools/switch directory: ./off.ab
+//
+// PREREQUISITES:
+//   - Amber language installed (https://amber-lang.com/)
+//   - Terraform installed and configured
+//   - AWS/Cloud credentials configured
+//   - secrets.tfvars file present in infra/ directory
+//
+// WARNING: This will destroy ALL infrastructure and data!
+//          Make sure to backup any important data before running.
+//
+// The script will:
+//   - Pull latest Terraform state before each destroy operation
+//   - Wait for each command to complete before proceeding
+//   - Exit on first error to prevent partial destruction
+//   - Display progress messages throughout execution
+
+import * from "std"
+
+main(args) {
+    echo "Starting infrastructure shutdown process..."
+    
+    // Step 1: Destroy node pool
+    echo "Step 1: Destroying Kubernetes node pool..."
+    
+    // Change to node pool directory and pull state
+    cd("../../infra/02-kubernetes/02-node-pool")
+    $terraform init$
+    $terraform pull$ failed {
+        echo "Warning: terraform pull failed for node-pool, continuing..."
+    }
+    
+    // Destroy node pool
+    $terraform destroy -var-file=../../secrets.tfvars -auto-approve$ failed {
+        echo "Error: Failed to destroy node pool"
+        exit(1)
+    }
+    
+    echo "Node pool destroyed successfully"
+    
+    // Step 2: Destroy databases
+    echo "Step 2: Destroying databases..."
+    
+    let database_dirs = ["banana-db", "banana-session", "keycloak"]
+    
+    loop dir in database_dirs {
+        echo "Destroying database: {dir}"
+        
+        // Change to database directory
+        cd("../../../03-databases/{dir}")
+        
+        // Initialize and pull terraform state
+        $terraform init$
+        $terraform pull$ failed {
+            echo "Warning: terraform pull failed for {dir}, continuing..."
+        }
+        
+        // Destroy database
+        $terraform destroy -var-file=../../secrets.tfvars -auto-approve$ failed {
+            echo "Error: Failed to destroy database {dir}"
+            exit(1)
+        }
+        
+        echo "Database {dir} destroyed successfully"
+    }
+    
+    echo "Infrastructure shutdown completed successfully!"
+}

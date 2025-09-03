@@ -1,0 +1,185 @@
+#!/usr/bin/env amber
+
+// Infrastructure Startup Script
+// 
+// This script initializes and applies the Kubernetes control plane infrastructure
+// by running terraform init, pull state, and apply operations.
+//
+// USAGE:
+//   From the project root directory: ./tools/switch/on.ab
+//   Or from tools/switch directory: ./on.ab
+//
+// PREREQUISITES:
+//   - Amber language installed (https://amber-lang.com/)
+//   - Terraform installed and configured
+//   - AWS/Cloud credentials configured
+//   - Scaleway CLI installed and configured
+//   - secrets.tfvars file present in infra/ directory
+//   - bucket.tfbackend file present in infra/ directory
+//
+// The script will:
+//   - Initialize Terraform with backend configuration
+//   - Pull the latest Terraform state
+//   - Apply the control plane configuration
+//   - Deploy Kubernetes node pool
+//   - Fetch Scaleway secrets from secret manager (banana-prod folder)
+//   - Update external secret YAML files with fetched secret IDs
+//   - Wait for each command to complete before proceeding
+//   - Exit on first error to prevent partial deployment
+//   - Display progress messages throughout execution
+
+import * from "std"
+
+// Function to update external secret YAML files with Scaleway secret IDs
+updateExternalSecretYaml(filePath, secretNames, secretIds) {
+    echo "Reading YAML file: ${filePath}"
+    
+    // Read the current YAML file content
+    let yamlContent = read_file(filePath)
+    
+    // Create a mapping of secret names to IDs
+    let secretMap = {}
+    for i in 0..secretNames.length-1 {
+        secretMap[secretNames[i]] = secretIds[i]
+    }
+    
+    // Process the YAML content and update secret IDs
+    let updatedContent = yamlContent
+    let currentSecretKey = ""
+    
+    let lines = yamlContent.split("\n")
+    for line in lines {
+        // Check if this line contains a secretKey
+        if line.contains("secretKey:") {
+            // Extract the secret key name
+            let parts = line.split("secretKey:")
+            if parts.length > 1 {
+                currentSecretKey = parts[1].trim()
+                echo "Found secret key: ${currentSecretKey}"
+            }
+        }
+        
+        // Check if this line contains a key: id: pattern
+        if line.contains("key: id:") && currentSecretKey != "" {
+            // Check if we have this secret in our Scaleway secrets
+            if secretMap.has(currentSecretKey) {
+                let newSecretId = secretMap[currentSecretKey]
+                // Replace the old ID with the new one
+                let oldIdPattern = "id:[a-f0-9-]+"
+                let newKeyLine = line.replace(oldIdPattern, "id:${newSecretId}")
+                updatedContent = updatedContent.replace(line, newKeyLine)
+                echo "Updated secret '${currentSecretKey}' with ID: ${newSecretId}"
+            }
+        }
+    }
+    
+    // Write the updated content back to the file
+    write_file(filePath, updatedContent)
+    echo "Successfully updated ${filePath}"
+}
+
+main(args) {
+    echo "Starting Kubernetes control plane deployment..."
+    
+    // Change to control plane directory
+    echo "Changing to control plane directory..."
+    cd("../../infra/02-kubernetes/01-control-plane")
+    
+    // Step 1: Initialize Terraform with backend configuration
+    echo "Step 1: Initializing Terraform with backend configuration..."
+    $terraform init -backend-config=../../bucket.tfbackend$ failed {
+        echo "Error: Failed to initialize Terraform"
+        exit(1)
+    }
+    
+    echo "Terraform initialized successfully"
+    
+    // Step 2: Pull latest state
+    echo "Step 2: Pulling latest Terraform state..."
+    $terraform pull$ failed {
+        echo "Warning: terraform pull failed, continuing with apply..."
+    }
+    
+    echo "State pulled successfully"
+    
+    // Step 3: Apply the configuration
+    echo "Step 3: Applying Kubernetes control plane configuration..."
+    $terraform apply -var-file=../../secrets.tfvars -auto-approve$ failed {
+        echo "Error: Failed to apply control plane configuration"
+        exit(1)
+    }
+    
+    echo "Kubernetes control plane deployed successfully!"
+    
+    // Step 4: Deploy node pool
+    echo "Step 4: Deploying Kubernetes node pool..."
+    
+    // Change to node pool directory
+    cd("../02-node-pool")
+    
+    // Initialize Terraform with backend configuration
+    echo "Initializing Terraform for node pool..."
+    $terraform init -backend-config=../../bucket.tfbackend$ failed {
+        echo "Error: Failed to initialize Terraform for node pool"
+        exit(1)
+    }
+    
+    // Pull latest state
+    echo "Pulling latest state for node pool..."
+    $terraform pull$ failed {
+        echo "Warning: terraform pull failed for node pool, continuing with apply..."
+    }
+    
+    // Apply the node pool configuration
+    echo "Applying node pool configuration..."
+    $terraform apply -var-file=../../secrets.tfvars -auto-approve$ failed {
+        echo "Error: Failed to apply node pool configuration"
+        exit(1)
+    }
+    
+    echo "Kubernetes node pool deployed successfully!"
+    echo "The complete Kubernetes cluster is now ready for use."
+    
+    // Step 5: Fetch Scaleway secrets from secret manager
+    echo "Step 5: Fetching Scaleway secrets from secret manager..."
+    
+    // Fetch secrets from banana-prod folder
+    $scw secret secret list --folder-name="banana-prod" --output=json$ failed {
+        echo "Error: Failed to fetch Scaleway secrets"
+        exit(1)
+    } | {
+        // Parse the JSON output and extract secret names and IDs
+        let secretData = parse_json(stdin())
+        let secretNames = []
+        let secretIds = []
+        
+        for secret in secretData {
+            secretNames.push(secret.name)
+            secretIds.push(secret.id)
+        }
+        
+        echo "Found ${secretNames.length} secrets in banana-prod folder:"
+        for i in 0..secretNames.length-1 {
+            echo "  - ${secretNames[i]} (ID: ${secretIds[i]})"
+        }
+        
+        // Store in variables for later use
+        let SCALEWAY_SECRET_NAMES = secretNames
+        let SCALEWAY_SECRET_IDS = secretIds
+        
+        echo "Scaleway secrets fetched successfully"
+        
+        // Update external secret YAML files with the fetched secret IDs
+        echo "Updating external secret YAML files..."
+        
+        // Update banana-back external secret
+        echo "Updating banana-back external secret..."
+        updateExternalSecretYaml("../../infra/04-applications/05-services/banana-back/01-external-secret.yaml", secretNames, secretIds)
+        
+        // Update keycloak external secret
+        echo "Updating keycloak external secret..."
+        updateExternalSecretYaml("../../infra/04-applications/05-services/keycloak/vanilla/01-external-secret.yaml", secretNames, secretIds)
+        
+        echo "External secret YAML files updated successfully"
+    }
+}
