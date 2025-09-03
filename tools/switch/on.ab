@@ -28,6 +28,7 @@
 //   - Fetch database instance information and update ConfigMaps
 //   - Deploy ingress controller and cluster issuer
 //   - Deploy external secrets operator
+//   - Deploy application services (keycloak, banana-back, banana-front)
 //   - Wait for each command to complete before proceeding
 //   - Exit on first error to prevent partial deployment
 //   - Display progress messages throughout execution
@@ -369,6 +370,40 @@ deployExternalSecretsOperator() {
     echo "External secrets operator deployed successfully!"
 }
 
+deployApplicationServices() {
+    echo "Step 10: Deploying application services..."
+    
+    // Deploy keycloak service first
+    echo "Deploying keycloak service..."
+    deployService("../../infra/04-applications/05-services/keycloak/vanilla", "keycloak")
+    
+    // Deploy banana-back service
+    echo "Deploying banana-back service..."
+    deployService("../../infra/04-applications/05-services/banana-back", "banana-back")
+    
+    // Deploy banana-front service
+    echo "Deploying banana-front service..."
+    deployService("../../infra/04-applications/05-services/banana-front", "banana-front")
+    
+    echo "All application services deployed successfully!"
+}
+
+// Function to deploy individual service
+deployService(servicePath, serviceName) {
+    echo "Deploying ${serviceName} service from ${servicePath}..."
+    
+    // Change to service directory
+    cd(servicePath)
+    
+    // Apply all YAML files in the directory
+    $kubectl apply -f .$ failed {
+        echo "Error: Failed to deploy ${serviceName} service"
+        exit(1)
+    }
+    
+    echo "${serviceName} service deployed successfully!"
+}
+
 deployIngressController() {
     echo "Step 8: Deploying ingress controller and cluster issuer..."
     
@@ -407,6 +442,7 @@ main(args) {
     updateConfigMapsWithDatabaseIPs()
     deployIngressController()
     deployExternalSecretsOperator()
+    deployApplicationServices()
     
     echo "The complete Kubernetes cluster is now ready for use."
     echo "All deployment steps completed successfully!"
