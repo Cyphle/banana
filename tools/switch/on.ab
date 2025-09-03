@@ -27,6 +27,7 @@
 //   - Update external secret YAML files with fetched secret IDs
 //   - Fetch database instance information and update ConfigMaps
 //   - Deploy ingress controller and cluster issuer
+//   - Deploy external secrets operator
 //   - Wait for each command to complete before proceeding
 //   - Exit on first error to prevent partial deployment
 //   - Display progress messages throughout execution
@@ -322,8 +323,54 @@ deployDatabases() {
     echo "All databases deployed successfully!"
 }
 
+deployExternalSecretsOperator() {
+    echo "Step 9: Deploying external secrets operator..."
+    
+    // Deploy cluster-wide components first
+    echo "Deploying cluster-wide external secrets operator components..."
+    
+    // Change to cluster-wide directory
+    cd("../../infra/04-applications/03-external-secrets-operator/01-cluster-wide")
+    
+    // Execute 1-helm.sh (add helm repo)
+    echo "Adding external secrets helm repository..."
+    $./1-helm.sh$ failed {
+        echo "Error: Failed to add external secrets helm repository"
+        exit(1)
+    }
+    
+    // Execute 2-crd.sh (install external secrets operator)
+    echo "Installing external secrets operator..."
+    $./2-crd.sh$ failed {
+        echo "Error: Failed to install external secrets operator"
+        exit(1)
+    }
+    
+    // Deploy namespace-specific components
+    echo "Deploying namespace-specific external secrets operator components..."
+    
+    // Change to in-namespace directory
+    cd("../02-in-namespace")
+    
+    // Execute 01-scaleway-access.sh (create Scaleway access secret)
+    echo "Creating Scaleway access secret..."
+    $./01-scaleway-access.sh$ failed {
+        echo "Error: Failed to create Scaleway access secret"
+        exit(1)
+    }
+    
+    // Apply 02-secret-store.yaml (create secret store)
+    echo "Creating secret store..."
+    $kubectl apply -f 02-secret-store.yaml$ failed {
+        echo "Error: Failed to create secret store"
+        exit(1)
+    }
+    
+    echo "External secrets operator deployed successfully!"
+}
+
 deployIngressController() {
-    echo "Step 9: Deploying ingress controller and cluster issuer..."
+    echo "Step 8: Deploying ingress controller and cluster issuer..."
     
     // Change to ingress directory
     echo "Changing to ingress directory..."
@@ -359,6 +406,7 @@ main(args) {
     updateSecrets()
     updateConfigMapsWithDatabaseIPs()
     deployIngressController()
+    deployExternalSecretsOperator()
     
     echo "The complete Kubernetes cluster is now ready for use."
     echo "All deployment steps completed successfully!"
