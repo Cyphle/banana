@@ -25,6 +25,7 @@
 //   - Deploy databases (banana-db, banana-session, keycloak)
 //   - Fetch Scaleway secrets from secret manager (banana-prod folder)
 //   - Update external secret YAML files with fetched secret IDs
+//   - Fetch database instance information and update ConfigMaps
 //   - Wait for each command to complete before proceeding
 //   - Exit on first error to prevent partial deployment
 //   - Display progress messages throughout execution
@@ -175,6 +176,97 @@ updateExternalSecretFiles(secretNames, secretIds) {
     echo "External secret YAML files updated successfully"
 }
 
+// Function to fetch database instance information
+fetchDatabaseInfo() {
+    echo "Fetching database instance information..."
+    
+    // Initialize variables
+    let postgresIP = ""
+    let redisIP = ""
+    
+    // Fetch postgres 'banana' instance info
+    echo "Fetching postgres 'banana' instance information..."
+    $scw rdb instance get "banana" --output=json$ failed {
+        echo "Error: Failed to fetch postgres 'banana' instance information"
+        exit(1)
+    } | {
+        let postgresData = parse_json(stdin())
+        postgresIP = postgresData.endpoint.ip
+        echo "Postgres 'banana' instance IP: ${postgresIP}"
+    }
+    
+    // Fetch redis 'banana-redis' instance info
+    echo "Fetching redis 'banana-redis' instance information..."
+    $scw redis cluster get "banana-redis" --output=json$ failed {
+        echo "Error: Failed to fetch redis 'banana-redis' instance information"
+        exit(1)
+    } | {
+        let redisData = parse_json(stdin())
+        redisIP = redisData.endpoints[0].ip
+        echo "Redis 'banana-redis' instance IP: ${redisIP}"
+    }
+    
+    // Update ConfigMaps with the fetched IPs
+    if postgresIP != "" && redisIP != "" {
+        updateConfigMaps(postgresIP, redisIP)
+    } else {
+        echo "Error: Failed to fetch database IPs"
+        exit(1)
+    }
+}
+
+// Function to update ConfigMaps with database IPs
+updateConfigMaps(postgresIP, redisIP) {
+    echo "Updating ConfigMaps with database IPs..."
+    
+    // Update banana-back ConfigMap
+    echo "Updating banana-back ConfigMap..."
+    updateConfigMapFile(
+        "../../infra/04-applications/05-services/banana-back/02-configmap.yaml",
+        postgresIP,
+        redisIP
+    )
+    
+    // Update keycloak ConfigMap
+    echo "Updating keycloak ConfigMap..."
+    updateConfigMapFile(
+        "../../infra/04-applications/05-services/keycloak/vanilla/02-configmap.yaml",
+        postgresIP,
+        redisIP
+    )
+    
+    echo "ConfigMaps updated successfully!"
+}
+
+// Function to update individual ConfigMap file
+updateConfigMapFile(filePath, postgresIP, redisIP) {
+    echo "Reading ConfigMap file: ${filePath}"
+    
+    // Read the current ConfigMap content
+    let configMapContent = read_file(filePath)
+    
+    // Update the content based on the file type
+    let updatedContent = configMapContent
+    
+    if filePath.contains("banana-back") {
+        // Update banana-back ConfigMap
+        // Replace DB_HOST with postgres IP
+        updatedContent = updatedContent.replace("DB_HOST: \"[^\"]*\"", "DB_HOST: \"${postgresIP}\"")
+        // Replace REDIS_HOST with redis IP
+        updatedContent = updatedContent.replace("REDIS_HOST: \"[^\"]*\"", "REDIS_HOST: \"${redisIP}\"")
+        echo "Updated banana-back ConfigMap - DB_HOST: ${postgresIP}, REDIS_HOST: ${redisIP}"
+    } else if filePath.contains("keycloak") {
+        // Update keycloak ConfigMap
+        // Replace KC_DB_URL with postgres IP
+        updatedContent = updatedContent.replace("KC_DB_URL: \"jdbc:postgresql://[^:]+:[0-9]+/", "KC_DB_URL: \"jdbc:postgresql://${postgresIP}:5432/")
+        echo "Updated keycloak ConfigMap - KC_DB_URL with postgres IP: ${postgresIP}"
+    }
+    
+    // Write the updated content back to the file
+    write_file(filePath, updatedContent)
+    echo "Successfully updated ${filePath}"
+}
+
 // Individual deployment step functions
 deployControlPlane() {
     echo "Step 1-3: Deploying Kubernetes control plane..."
@@ -234,6 +326,11 @@ updateSecrets() {
     fetchScalewaySecrets()
 }
 
+updateConfigMapsWithDatabaseIPs() {
+    echo "Step 7: Fetching database information and updating ConfigMaps..."
+    fetchDatabaseInfo()
+}
+
 main(args) {
     echo "Starting Kubernetes control plane deployment..."
     
@@ -242,6 +339,7 @@ main(args) {
     deployNodePool()
     deployDatabases()
     updateSecrets()
+    updateConfigMapsWithDatabaseIPs()
     
     echo "The complete Kubernetes cluster is now ready for use."
     echo "All deployment steps completed successfully!"
