@@ -22,6 +22,7 @@
 //   - Pull the latest Terraform state
 //   - Apply the control plane configuration
 //   - Deploy Kubernetes node pool
+//   - Deploy databases (banana-db, banana-session, keycloak)
 //   - Fetch Scaleway secrets from secret manager (banana-prod folder)
 //   - Update external secret YAML files with fetched secret IDs
 //   - Wait for each command to complete before proceeding
@@ -195,8 +196,41 @@ deployNodePool() {
     )
 }
 
+deployDatabases() {
+    echo "Step 5: Deploying databases..."
+    
+    // Deploy banana-db
+    echo "Deploying banana-db..."
+    executeTerraformOperations(
+        "../../infra/03-databases/banana-db",
+        "../../bucket.tfbackend",
+        "../../secrets.tfvars",
+        "banana-db"
+    )
+    
+    // Deploy banana-session
+    echo "Deploying banana-session..."
+    executeTerraformOperations(
+        "../../infra/03-databases/banana-session",
+        "../../bucket.tfbackend",
+        "../../secrets.tfvars",
+        "banana-session"
+    )
+    
+    // Deploy keycloak database
+    echo "Deploying keycloak database..."
+    executeTerraformOperations(
+        "../../infra/03-databases/keycloak/alternative",
+        "../../bucket.tfbackend",
+        "../../secrets.tfvars",
+        "keycloak database"
+    )
+    
+    echo "All databases deployed successfully!"
+}
+
 updateSecrets() {
-    echo "Step 5: Fetching and updating Scaleway secrets..."
+    echo "Step 6: Fetching and updating Scaleway secrets..."
     fetchScalewaySecrets()
 }
 
@@ -206,6 +240,7 @@ main(args) {
     // Execute deployment steps
     deployControlPlane()
     deployNodePool()
+    deployDatabases()
     updateSecrets()
     
     echo "The complete Kubernetes cluster is now ready for use."
