@@ -37,6 +37,7 @@ pub struct CorsConfig {
     pub allowed_headers: Vec<String>,
     pub supports_credentials: bool,
     pub max_age: u64,
+    pub additional_headers: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
