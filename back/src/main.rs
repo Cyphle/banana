@@ -47,6 +47,7 @@ async fn main() -> std::io::Result<()> {
             let oidc_client = Arc::new(Mutex::new(get_client(&oidc_config).await));
 
             // Session
+            info!("Configuring session store...");
             let session_key = Key::from(&[0; 64]);
             let session_store = RedisSessionStore::new(config.get_session_store_url())
                 .await
