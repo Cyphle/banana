@@ -67,7 +67,7 @@ async fn main() -> std::io::Result<()> {
                     .wrap(
                         Cors::default()
                             .allowed_origin(config.cors.allowed_origin.as_str()) // TODO Change to your frontend URL
-                            .allowed_methods(config.cors.allowed_methods.clone())
+                            .allowed_methods(config.cors.allowed_methods.iter().map(|m| m.parse::<reqwest::Method>().unwrap()).collect::<Vec<_>>())
                             .allowed_headers(vec![actix_web::http::header::CONTENT_TYPE])
                             .supports_credentials() // Optional, if credentials are used
                             .max_age(3600),
