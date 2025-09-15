@@ -1,3 +1,4 @@
+use actix_web::cookie::Key;
 use serde::Deserialize;
 
 
@@ -5,8 +6,8 @@ use serde::Deserialize;
 pub struct SessionConfig {
     pub database: SessionDatabaseConfig,
     pub store_addr: String,
-    pub cookie_name: String,
-    pub session_ttl_days: u64,
+    pub cookie_name: Option<String>,
+    pub session_ttl_days: u64
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -1,4 +1,4 @@
-use crate::config::actix::AppState;
+use crate::config::actix::ActixState;
 use crate::config::local::oidc_config::USER_SESSION_KEY;
 use actix_session::Session;
 use actix_web::web::Data;
@@ -12,7 +12,7 @@ use crate::security::controllers::auth_request::AuthRequest;
 #[get("/login")]
 async fn login(
     session: Session,
-    state: Data<AppState>,
+    state: Data<ActixState>,
     query: web::Query<AuthRequest>,
 ) -> impl Responder {
     let client = state.oidc_client.as_ref().unwrap().lock().unwrap();

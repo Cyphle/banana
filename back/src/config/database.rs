@@ -20,7 +20,6 @@ pub struct DatabaseConfig {
 }
 
 pub async fn connect(config: &DatabaseConfig) -> Result<DatabaseConnection, DbErr> {
-
     let mut opt = ConnectOptions::new("postgres://".to_string() + &config.username + ":" + &config.password + "@" + &config.host + ":" + &config.port + "/" + &config.name);
     opt.max_connections(config.max_connections)
         .min_connections(config.min_connections)

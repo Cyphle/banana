@@ -1,4 +1,4 @@
-use crate::config::actix::AppState;
+use crate::config::actix::ActixState;
 use crate::domain::account::CreateAccountCommand;
 use crate::dto::requests::account::CreateAccountRequest;
 use crate::repositories::profile::mappers::to_profile;
@@ -16,7 +16,7 @@ use crate::repositories::account::create;
 pub async fn create_account(
     payload: web::Json<CreateAccountRequest>,
     session: Session,
-    state: Data<AppState>,
+    state: Data<ActixState>,
 ) -> impl Responder {
     info!("Creating account");
 
@@ -51,7 +51,7 @@ pub async fn create_account(
 pub async fn find_one(
     path: web::Path<i32>,
     session: Session,
-    state: Data<AppState>
+    state: Data<ActixState>
 ) -> impl Responder {
     let client = state.oidc_client.as_ref().unwrap().lock().unwrap();
 
@@ -85,7 +85,7 @@ pub async fn find_one(
 #[get("/accounts")]
 pub async fn find_all(
     session: Session,
-    state: Data<AppState>
+    state: Data<ActixState>
 ) -> impl Responder {
     let client = state.oidc_client.as_ref().unwrap().lock().unwrap();
 

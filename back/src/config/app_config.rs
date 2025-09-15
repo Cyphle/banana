@@ -3,6 +3,8 @@ use crate::config::session::SessionConfig;
 use config::{Config, Environment, File};
 use serde::Deserialize;
 use std::time::Duration;
+use sea_orm::ColIdx;
+use crate::config::cors::CorsConfig;
 
 // TODO à merge avec ce qui est dans le dossier security
 #[derive(Debug, Deserialize, Clone)]
@@ -28,16 +30,6 @@ pub struct OidcConfig {
     pub nonce: String,
     pub session_timeout_minutes: i64,
     pub admin: OidcAdminConfig,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct CorsConfig {
-    pub allowed_origin: String,
-    pub allowed_methods: Vec<String>,
-    pub allowed_headers: Vec<String>,
-    pub supports_credentials: bool,
-    pub max_age: u64,
-    pub additional_headers: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -72,7 +64,7 @@ impl AppConfig {
         config.try_deserialize()
     }
 
-    pub fn get_session_url(&self) -> String {
+    pub fn get_session_store_url(&self) -> String {
         format!(
             "redis://{}:{}@{}:{}",
             self.session.database.username,
@@ -81,7 +73,12 @@ impl AppConfig {
             self.session.database.port
         )
     }
-    
+
+    pub fn get_cookie_name(&self) -> String {
+        self.session.cookie_name.as_ref().unwrap_or(&USER_SESSION_KEY.to_string()).clone()
+    }
+
+    // TODO utilisé ?
     pub fn database_url(&self) -> String {
         format!(
             "postgres://{}:{}@{}:{}/{}",
@@ -93,6 +90,7 @@ impl AppConfig {
         )
     }
 
+    // TODO utilisé ?
     pub fn session_ttl_duration(&self) -> Duration {
         Duration::from_secs(self.session.session_ttl_days * 24 * 60 * 60)
     }

@@ -4,14 +4,14 @@ use actix_web::web::Data;
 use log::{debug, error, info};
 use openid::{Bearer, Client, Discovered, StandardClaims};
 use url::Url;
-use crate::config::actix::AppState;
+use crate::config::actix::ActixState;
 use crate::config::local::oidc_config::USER_SESSION_KEY;
 use crate::security::controllers::auth_request::AuthRequest;
 
 #[get("/logout")]
 async fn logout(
     session: Session,
-    state: Data<AppState>,
+    state: Data<ActixState>,
     _: web::Query<AuthRequest>,
 ) -> impl Responder {
     let user_session = session.get::<Bearer>(USER_SESSION_KEY);

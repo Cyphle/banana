@@ -1,11 +1,11 @@
-use crate::config::actix::AppState;
+use crate::config::actix::ActixState;
 use crate::http::adapters::profile::get_profile_by_username;
 use crate::repositories::profile::find_one_by_username;
 use actix_web::{get, web, HttpResponse, Responder};
 use log::{error, info};
 
 #[get("/test")]
-async fn test(state: web::Data<AppState>) -> impl Responder {
+async fn test(state: web::Data<ActixState>) -> impl Responder {
     match get_profile_by_username(&state.db_connection, "test").await {
         Some(username) => {
             info!("Found profile for username: {}", username.username);
@@ -30,7 +30,7 @@ mod tests {
     use std::collections::HashMap;
     use std::sync::Mutex;
     use openid::Bearer;
-    use crate::config::actix::AppState;
+    use crate::config::actix::ActixState;
     use crate::security::oidc::{OidcAdminConfig, OidcConfig};
 
     fn dummy_oidc_config() -> OidcConfig {
@@ -79,11 +79,11 @@ mod tests {
         ))
     }
 
-    fn make_state(db: &'static DatabaseConnection) -> web::Data<AppState> {
-        web::Data::new(AppState {
+    fn make_state(db: &'static DatabaseConnection) -> web::Data<ActixState> {
+        web::Data::new(ActixState {
             db_connection: db,
             oidc_client: None,
-            store: Mutex::new(HashMap::<String, Bearer>::new()),
+            internal_store: Mutex::new(HashMap::<String, Bearer>::new()),
             oidc_config: dummy_oidc_config(),
         })
     }

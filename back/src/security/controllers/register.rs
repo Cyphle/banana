@@ -1,4 +1,4 @@
-use crate::config::actix::AppState;
+use crate::config::actix::ActixState;
 use crate::domain::profile::CreateProfileCommand;
 use crate::security::token::get_admin_access_token;
 use crate::{repositories};
@@ -40,7 +40,7 @@ pub struct RegisterRequest {
 pub async fn register(
     payload: web::Json<RegisterRequest>,
     _: Session,
-    state: Data<AppState>,
+    state: Data<ActixState>,
     _: web::Query<AuthRequest>,
 ) -> impl Responder {
     let request_payload = payload.into_inner();
@@ -100,7 +100,7 @@ pub async fn register(
 
 #[cfg(test)]
 mod tests {
-    use crate::config::actix::AppState;
+    use crate::config::actix::ActixState;
     use crate::config::local::oidc_config::get_oidc_config;
     use crate::security::controllers::register::register;
     use actix_web::http::header::ContentType;

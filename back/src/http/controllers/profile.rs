@@ -1,4 +1,4 @@
-use crate::config::actix::AppState;
+use crate::config::actix::ActixState;
 use crate::domain::profile::CreateProfileCommand;
 use crate::http::adapters::profile::get_profile_by_username;
 use crate::repositories;
@@ -8,7 +8,7 @@ use actix_web::{get, post, web, HttpResponse, Responder};
 use log::{error, info};
 
 #[get("/profiles")]
-async fn get_profile(session: Session, state: web::Data<AppState>) -> impl Responder {
+async fn get_profile(session: Session, state: web::Data<ActixState>) -> impl Responder {
     info!("Getting profile");
 
     let client = state.oidc_client.as_ref().unwrap().lock().unwrap();

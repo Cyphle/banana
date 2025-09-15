@@ -3,7 +3,7 @@ use actix_web::{get, web, HttpResponse, Responder};
 use log::{error, info};
 use openid::{Bearer, Client, StandardClaims, Token, TokenIntrospection};
 use crate::config::local::oidc_config::USER_SESSION_KEY;
-use crate::config::actix::AppState;
+use crate::config::actix::ActixState;
 use crate::security::controllers::auth_request::AuthRequest;
 use crate::security::controllers::logout::logout;
 use crate::security::token::{get_username_from_bearer};
@@ -11,7 +11,7 @@ use crate::security::token::{get_username_from_bearer};
 #[get("/get-from-session")]
 async fn get_session(
     session: Session,
-    state: web::Data<AppState>,
+    state: web::Data<ActixState>,
     _: web::Query<AuthRequest>,
 ) -> impl Responder {
     let user_id = session.get::<Bearer>(USER_SESSION_KEY);
@@ -68,7 +68,7 @@ async fn get_session(
 #[get("/delete-from-session")]
 async fn delete_session(
     session: Session,
-    state: web::Data<AppState>,
+    state: web::Data<ActixState>,
     _: web::Query<AuthRequest>,
 ) -> impl Responder {
     let before = session.get::<Bearer>(USER_SESSION_KEY);
