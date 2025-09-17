@@ -1,4 +1,4 @@
-use crate::config::database::DatabaseConfig;
+use crate::{config::database::DatabaseConfig, security::oidc::OidcConfig};
 use crate::config::session::SessionConfig;
 use config::{Config, Environment, File};
 use serde::Deserialize;
@@ -49,23 +49,6 @@ impl AppConfig {
 
     pub fn get_cookie_name(&self) -> String {
         self.session.cookie_name.as_ref().unwrap_or(&USER_SESSION_KEY.to_string()).clone()
-    }
-
-    // TODO utilisé ?
-    pub fn database_url(&self) -> String {
-        format!(
-            "postgres://{}:{}@{}:{}/{}",
-            self.database.username,
-            self.database.password,
-            self.database.host,
-            self.database.port,
-            self.database.schema
-        )
-    }
-
-    // TODO utilisé ?
-    pub fn session_ttl_duration(&self) -> Duration {
-        Duration::from_secs(self.session.session_ttl_days * 24 * 60 * 60)
     }
 }
 

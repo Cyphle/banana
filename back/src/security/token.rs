@@ -1,10 +1,8 @@
 use crate::config::local::oidc_config::USER_SESSION_KEY;
-use actix_session::SessionGetError;
 use log::{error, info, warn};
-use openid::error::Error;
 use openid::{
-    Bearer, Client, Discovered, DiscoveredClient, IdToken, StandardClaims, Token,
-    TokenIntrospection, Userinfo,
+    Bearer, Client, Discovered, DiscoveredClient, StandardClaims, Token,
+    TokenIntrospection,
 };
 use reqwest::Client as HttpClient;
 use serde::Deserialize;
@@ -67,7 +65,7 @@ pub async fn get_admin_access_token(
     let token_endpoint = client.config().token_endpoint.clone();
     let token_request = HttpClient::new()
         .post(token_endpoint)
-        .basic_auth(admin.client_id.clone(), Some(admin.client_secret.clone()))
+        .basic_auth(admin.client.id.clone(), Some(admin.client.secret.clone()))
         .form(&[("grant_type", "client_credentials")])
         .send()
         .await;
