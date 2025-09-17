@@ -5,8 +5,7 @@ use actix_web::web::Data;
 use actix_web::{get, web, HttpResponse, Responder};
 use chrono::Duration;
 use log::{error, info};
-use openid::{Options, StandardClaims, Token, TokenIntrospection};
-use openid::error::Error::Http;
+use openid::{Options, Token};
 use crate::security::controllers::auth_request::AuthRequest;
 
 #[get("/login")]
@@ -25,7 +24,8 @@ async fn login(
             );
     
             let nonce: Option<&str> = state.oidc_config.nonce.as_deref();
-            let max_age: Option<&Duration> = state.oidc_config.max_age.as_ref();
+            let max_age_duration = state.oidc_config.get_max_age();
+            let max_age: Option<&Duration> = max_age_duration.as_ref();
     
             match client.authenticate(authorization_code, nonce, max_age).await {
                 Ok(token) => {
@@ -48,7 +48,7 @@ async fn login(
             let auth_url = client.auth_url(&Options {
                 scope: Some("openid email profile".into()),
                 nonce: state.oidc_config.nonce.clone(),
-                max_age: state.oidc_config.max_age.clone(),
+                max_age: state.oidc_config.get_max_age().clone(),
                 ..Default::default()
             });
     

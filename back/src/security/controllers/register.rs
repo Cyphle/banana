@@ -101,7 +101,6 @@ pub async fn register(
 #[cfg(test)]
 mod tests {
     use crate::config::actix::ActixState;
-    use crate::config::local::oidc_config::get_oidc_config;
     use crate::security::controllers::register::register;
     use actix_web::http::header::ContentType;
     use actix_web::web;
@@ -131,26 +130,25 @@ mod tests {
             .into_connection()))
     }
 
-    // TODO remettre oidc
-    // #[actix_web::test]
-    // async fn should_register() {
-    //     let app = test::init_service(
-    //         App::new()
-    //             .app_data(web::Data::new(AppState {
-    //                 db_connection: get_mock_database(),
-    //                 oidc_client: None,
-    //                 store: Mutex::new(std::collections::HashMap::new()),
-    //                 oidc_config: get_oidc_config().clone(),
-    //             }))
-    //             .service(register)
-    //     ).await;
-    //
-    //     let req = test::TestRequest::post()
-    //         .set_payload("{\"username\": \"johndoe\", \"email\": \"johndoe@banana.fr\", \"first_name\": \"John\", \"last_name\": \"Doe\", \"password\": \"Bonjour01\"}")
-    //         .insert_header(ContentType::json())
-    //         .uri("/register").to_request();
-    //
-    //     let resp = test::call_service(&app, req).await;
-    //     assert!(resp.status().is_success());
-    // }
+    #[actix_web::test]
+    async fn should_register() {
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(AppState {
+                    db_connection: get_mock_database(),
+                    oidc_client: None,
+                    store: Mutex::new(std::collections::HashMap::new()),
+                    oidc_config: get_oidc_config().clone(),
+                }))
+                .service(register)
+        ).await;
+    
+        let req = test::TestRequest::post()
+            .set_payload("{\"username\": \"johndoe\", \"email\": \"johndoe@banana.fr\", \"first_name\": \"John\", \"last_name\": \"Doe\", \"password\": \"Bonjour01\"}")
+            .insert_header(ContentType::json())
+            .uri("/register").to_request();
+    
+        let resp = test::call_service(&app, req).await;
+        assert!(resp.status().is_success());
+    }
 }

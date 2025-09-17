@@ -1,3 +1,4 @@
+use chrono::Duration;
 use openid::{Client, StandardClaims};
 use serde::Deserialize;
 
@@ -20,9 +21,15 @@ pub struct OidcConfig {
     pub redirect_uri: String,
     pub logout_uri: String,
     pub client: OidcClientConfig,
-    pub nonce: String,
-    pub session_timeout_minutes: i64,
+    pub nonce: Option<String>,
+    pub session_timeout_minutes: Option<i64>,
     pub admin: OidcAdminConfig,
+}
+
+impl OidcConfig {
+    pub fn get_max_age(&self) -> Option<Duration> {
+        self.session_timeout_minutes.map(|minutes| Duration::minutes(minutes))
+    }
 }
 
 pub async fn get_client(config: &OidcConfig) -> Client<openid::Discovered, StandardClaims> {
