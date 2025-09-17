@@ -1,6 +1,5 @@
 use crate::config::actix::ActixState;
 use crate::config::database::connect;
-use crate::config::local::oidc_config::get_oidc_config;
 use crate::http::controllers::account::{create_account, find_all, find_one};
 use crate::http::controllers::example_actix_session::{delete_session, get_session};
 use crate::http::controllers::example_actix_store::{add_to_store, get_from_store};
@@ -16,10 +15,8 @@ use actix_session::config::PersistentSession;
 use actix_session::storage::RedisSessionStore;
 use actix_session::SessionMiddleware;
 use actix_web::cookie::{time, Key};
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web, App, HttpServer};
 use log::info;
-use openid::{Client, Options, StandardClaims, Token};
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -43,8 +40,7 @@ async fn main() -> std::io::Result<()> {
 
             // OIDC
             info!("Configuring OIDC client...");
-            let oidc_config = get_oidc_config();
-            let oidc_client = Arc::new(Mutex::new(get_client(&oidc_config).await));
+            let oidc_client = Arc::new(Mutex::new(get_client(&config.oidc).await));
 
             // Session
             info!("Configuring session store...");
@@ -53,10 +49,11 @@ async fn main() -> std::io::Result<()> {
                 .await
                 .unwrap();
 
+            // Actix
             let state = web::Data::new(ActixState {
                 db_connection: static_db,
 
-                oidc_config: oidc_config.clone(),
+                oidc_config: config.oidc.clone(),
                 oidc_client: Some(oidc_client.clone()),
 
                 internal_store: Mutex::new(HashMap::new()),
@@ -67,7 +64,7 @@ async fn main() -> std::io::Result<()> {
                 App::new()
                     .wrap(
                         Cors::default()
-                            .allowed_origin(config.cors.allowed_origin.as_str()) // TODO Change to your frontend URL
+                            .allowed_origin(config.cors.allowed_origin.as_str())
                             .allowed_methods(config.cors.allowed_methods.iter().map(|m| m.parse::<reqwest::Method>().unwrap()).collect::<Vec<_>>())
                             .allowed_headers(vec![actix_web::http::header::CONTENT_TYPE])
                             .supports_credentials() // Optional, if credentials are used

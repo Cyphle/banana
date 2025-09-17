@@ -3,34 +3,7 @@ use crate::config::session::SessionConfig;
 use config::{Config, Environment, File};
 use serde::Deserialize;
 use std::time::Duration;
-use sea_orm::ColIdx;
 use crate::config::cors::CorsConfig;
-
-// TODO à merge avec ce qui est dans le dossier security
-#[derive(Debug, Deserialize, Clone)]
-pub struct OidcAdminConfig {
-    pub client: OidcClientConfig,
-    pub create_user_url: String,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct OidcClientConfig {
-    pub id: String,
-    pub secret: String
-}
-
-// TODO à merge avec ce qui est dans le dossier security
-#[derive(Debug, Deserialize, Clone)]
-pub struct OidcConfig {
-    pub url: String,
-    pub realm_name: String,
-    pub redirect_uri: String,
-    pub logout_uri: String,
-    pub client: OidcClientConfig,
-    pub nonce: String,
-    pub session_timeout_minutes: i64,
-    pub admin: OidcAdminConfig,
-}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AppConfig {

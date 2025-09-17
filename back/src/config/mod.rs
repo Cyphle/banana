@@ -4,5 +4,4 @@ pub mod local;
 pub mod logger;
 pub mod app_config;
 mod session;
-pub mod application_state;
 mod cors;
